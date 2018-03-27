@@ -12,7 +12,7 @@ public class Network {
 	public List<Neuron> hiddenLayer 	= new ArrayList<>();
 	public List<Neuron> outputLayer	 	= new ArrayList<>();
 
-	private float bias = 0.1f;
+	private float bias = 0.01f;
 
 	public Network() {
 		// input feeds to hidden layer (or output)
@@ -49,7 +49,7 @@ public class Network {
 		}
 	}
 
-	public void calculate(float[] inputs, float correctOutput) {
+	public boolean calculate(float[] inputs, float correctOutput) {
 		for (int i=0; i<inputs.length; i++) {
 			Neuron neuron = inputLayer.get(i);
 			neuron.setValue(inputs[i]);
@@ -68,17 +68,21 @@ public class Network {
 			neuron.adjustWeights(delta, this);
 		}
 
+		boolean foundCorrect = true;
 		for (int i=0; i<outputLayer.size(); i++) {
 			Neuron neuron = outputLayer.get(i);
 			float value = neuron.calculateValue(this);
 			float delta = correctOutput - value;
 
+			if (delta != 0) foundCorrect = false;
 
 
 			System.out.println("OUT: " + neuron + " ##################### -> " + value + ", delta " + delta);
 
 			neuron.adjustWeights(delta, this);
 		}
+
+		return foundCorrect;
 	}
 
 	public List<Neuron> getInputLayer() {

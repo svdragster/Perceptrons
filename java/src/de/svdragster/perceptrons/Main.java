@@ -18,16 +18,16 @@ public class Main {
 		Network network = new Network();
 
 		float[] correctOutputs = new float[]{
+				-1,
 				1,
 				1,
-				1,
-				0
+				-1
 		};
 
 		float[][] inputs = new float[][] {
-				{0, 0},
-				{0, 1},
-				{1, 0},
+				{-1, -1},
+				{-1, 1},
+				{1, -1},
 				{1, 1}
 		};
 
@@ -40,9 +40,21 @@ public class Main {
 				break;
 			}
 
+			boolean done = true;
+
 			for (int i=0; i<inputs.length; i++) {
 				System.out.println("INPUT -- " + Arrays.toString(inputs[i]));
-				network.calculate(inputs[i], correctOutputs[i]);
+
+				if (!network.calculate(inputs[i], correctOutputs[i])) {
+					done = false;
+				}
+			}
+
+			if (done) {
+				System.out.println(" ------- ---- -------");
+				System.out.println(" ------- DONE -------");
+				System.out.println(" ------- ---- -------");
+				break;
 			}
 
 		} while(true);
