@@ -313,7 +313,12 @@ function createButtons() {
 
         button.addEventListener("click", function() {
             display(gate);
-            currentNetwork = new Network(gate);
+            if (currentNetwork == null) {
+                currentNetwork = new Network(gate);
+            }
+            if (timer != null) {
+                clearTimeout(timer);
+            }
             timer = setInterval(function() {
                 console.log("#############");
                 var finished = true;
@@ -343,6 +348,7 @@ function createButtons() {
                 if (finished) {
                     clearTimeout(timer);
                     console.log("FINISHED");
+                    timer = null;
                 }
 
             }, 400);

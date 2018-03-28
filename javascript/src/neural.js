@@ -59,6 +59,9 @@ class Network {
         var hidden1 = new Neuron("hidden1");
         var hidden2 = new Neuron("hidden2");
         var hidden3 = new Neuron("hidden3");
+        var hidden4 = new Neuron("hidden4");
+        var hidden5 = new Neuron("hidden5");
+        var hidden6 = new Neuron("hidden6");
 
         var output1 = new Neuron("output1");
 
@@ -68,6 +71,9 @@ class Network {
         this.hiddenLayer.push(hidden1);
         this.hiddenLayer.push(hidden2);
         this.hiddenLayer.push(hidden3);
+        this.hiddenLayer.push(hidden4);
+        this.hiddenLayer.push(hidden5);
+        this.hiddenLayer.push(hidden6);
 
         this.outputLayer.push(output1);
 
