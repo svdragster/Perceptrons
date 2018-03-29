@@ -5,11 +5,13 @@ class Neuron {
         this.inputs = [];
         this.destinations = [];
         this.value = 0;
-        this.learningRate = 0.01;
+        this.learningRate = 0.005;
     }
 
     activationFunction(t) {
-		return t >= 0 ? 1 : -1; // signum function
+        return t;
+        //return 1/(1+Math.pow(Math.E, -t));
+		//return t >= 0 ? 1 : -1; // signum function
 	}
 
 	calculateValue(network) {
@@ -43,47 +45,79 @@ class Connection {
     }
 }
 
+class Layer {
+    constructor() {
+        this.neurons = new Array();
+    }
+
+    push(neuron) {
+        this.neurons.push(neuron);
+    }
+
+}
+
 class Network {
 
     constructor(gate) {
         this.gate = gate;
         this.bias = 0.1;
 
-        this.inputLayer = new Array();
-        this.hiddenLayer = new Array();
-        this.outputLayer = new Array();
+        this.inputLayer = new Layer();
+        this.hiddenLayer = new Layer();
+        var hiddenLayer2 = new Layer();
+        var hiddenLayer3 = new Layer();
+        var hiddenLayer4 = new Layer();
+        this.outputLayer = new Layer();
 
-        var input1 = new Neuron("input1");
-        var input2 = new Neuron("input2");
+        this.hiddenLayers = [
+            this.hiddenLayer,
+            hiddenLayer2,
+            hiddenLayer3
+        ];
 
-        var hidden1 = new Neuron("hidden1");
-        var hidden2 = new Neuron("hidden2");
-        var hidden3 = new Neuron("hidden3");
-        var hidden4 = new Neuron("hidden4");
-        var hidden5 = new Neuron("hidden5");
-        var hidden6 = new Neuron("hidden6");
+        for (var i=0; i<9; i++) {
+            var input = new Neuron("input" + (i+1));
+            this.inputLayer.push(input);
+        }
 
-        var output1 = new Neuron("output1");
+        var hCount = 0;
+        // hidden layer 1
+        for (var i=0; i<15; i++) {
+            var hidden = new Neuron("hidden" + (hCount++));
+            this.hiddenLayer.push(hidden);
+        }
+        // hidden layer 2
+        for (var i=0; i<15; i++) {
+            var hidden = new Neuron("hidden" + (hCount++));
+            hiddenLayer2.push(hidden);
+        }
+        // hidden layer 3
+        for (var i=0; i<12; i++) {
+            var hidden = new Neuron("hidden" + (hCount++));
+            hiddenLayer3.push(hidden);
+        }
+        // hidden layer 4
+        for (var i=0; i<12; i++) {
+            var hidden = new Neuron("hidden" + (hCount++));
+            hiddenLayer4.push(hidden);
+        }
 
-        this.inputLayer.push(input1);
-        this.inputLayer.push(input2);
-
-        this.hiddenLayer.push(hidden1);
-        this.hiddenLayer.push(hidden2);
-        this.hiddenLayer.push(hidden3);
-        this.hiddenLayer.push(hidden4);
-        this.hiddenLayer.push(hidden5);
-        this.hiddenLayer.push(hidden6);
-
-        this.outputLayer.push(output1);
+        var network = this;
+        signArray.forEach(function(sign, i) {
+            var output = new Neuron("output" + (i+1));
+            network.outputLayer.push(output);
+        });
 
         this.connect(this.inputLayer, this.hiddenLayer);
-        this.connect(this.hiddenLayer, this.outputLayer);
+        //this.connect(this.hiddenLayer, this.outputLayer);
+        this.connect(this.hiddenLayer, hiddenLayer2);
+        this.connect(hiddenLayer2, hiddenLayer3);
+        this.connect(hiddenLayer3, this.outputLayer);
     }
 
     connect(fromLayer, toLayer) {
-        fromLayer.forEach(function(from, index) {
-            toLayer.forEach(function(to, index) {
+        fromLayer.neurons.forEach(function(from, index) {
+            toLayer.neurons.forEach(function(to, index) {
                 var con = new Connection((Math.random()*2) - 1); // Random weight between 1 and -1
                 console.log("connected " + from.name + " with " + to.name);
                 from.destinations.push(con);
@@ -94,8 +128,9 @@ class Network {
 
     calculate(inputs, correctOutput) {
         var network = this;
+        var training = document.getElementById("myCheckbox").checked;
         inputs.forEach(function(input, index) {
-            var neuron = network.inputLayer[index];
+            var neuron = network.inputLayer.neurons[index];
             neuron.value = input;
 
             neuron.destinations.forEach(function(connectionOut) {
@@ -103,25 +138,43 @@ class Network {
             });
         });
 
-        this.hiddenLayer.forEach(function(neuron, index) {
-            var value = neuron.calculateValue(network);
-            var delta = correctOutput - value;
+        this.hiddenLayers.forEach(function(layer) {
+            layer.neurons.forEach(function(neuron, index) {
+                var value = neuron.calculateValue(network);
+                if (training) {
+                    var correct = -1;
+                    if (index < correctOutput.length) correct = correctOutput[index];
+                    var delta = correct - value;
 
-            neuron.adjustWeights(delta, network);
+                    neuron.adjustWeights(delta, network);
+                }
+            });
         });
+
 
 		var foundCorrect = true;
-        this.outputLayer.forEach(function(neuron, index) {
+        this.outputLayer.neurons.forEach(function(neuron, index) {
             var value = neuron.calculateValue(network);
-            var delta = correctOutput - value;
+            if (training) {
+                var correct = -1;
+                if (index < correctOutput.length) correct = correctOutput[index];
+                var delta = correct - value;
 
-            if (delta != 0) foundCorrect = false;
+                //if (Math.abs(delta) >= 0.01) foundCorrect = false;
+                if (correct == -1 && value >= -0.95) {
+                    foundCorrect = false;
+                } else if (correct == 1 && value < 0.95) {
+                    foundCorrect = false;
+                }
 
-            console.log("OUT: " + neuron.name + " " + index + " -> " + value + ", delta " + delta);
+                console.log("OUT: " + neuron.name + " " + index + " -> " + value + ", delta " + delta);
 
-            neuron.adjustWeights(delta, network);
+                neuron.adjustWeights(delta, network);
+            } else {
+                console.log("- OUT: " + neuron.name + " " + index + " -> " + value);
+            }
         });
 
-		return foundCorrect;
+		return foundCorrect || !training;
 	}
 };
