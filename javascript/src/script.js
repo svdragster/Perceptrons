@@ -66,10 +66,44 @@ var boxSign = {
     expected: [ -1, -1, -1, -1, -1, 1 ]
 }
 
+var dotSign = {
+    type: "DOT",
+    titles: ["a", "b", "c"],
+    table: [
+        [0, 0, 0],
+        [0, 1, 0],
+        [0, 0, 0],
+    ],
+    expected: [ -1, -1, -1, -1, -1, -1, 1 ]
+}
+
+var blackSign = {
+    type: "BLACK",
+    titles: ["a", "b", "c"],
+    table: [
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+    ],
+    expected: [ -1, -1, -1, -1, -1, -1, -1, 1 ]
+}
+
+var slashSign = {
+    type: "SLASH",
+    titles: ["a", "b", "c"],
+    table: [
+        [0, 0, 1],
+        [0, 1, 0],
+        [1, 0, 0],
+    ],
+    expected: [ -1, -1, -1, -1, -1, -1, -1, -1, 1 ]
+}
+
+
 
 ////////////////
 
-var signArray = [plusSign, minusSign, multSign, divSign/*, equalsSign, boxSign*/];
+var signArray = [plusSign, minusSign, multSign, divSign, equalsSign, boxSign, dotSign, blackSign, slashSign];
 var currentNetwork = null;
 var timer = null;
 
@@ -355,34 +389,36 @@ function createButtons() {
             clearTimeout(timer);
         }
         timer = setInterval(function() {
-            if (amount > 500) {
-                clearTimeout(timer);
-                return;
-            }
-            var gate = signArray[i];
-            if (currentNetwork == null) {
-                currentNetwork = new Network(gate);
-            }
-            var finished = training(gate, false);
-            display(gate);
-            if (finished) {
-                i += 1 * direction;
-                if (i >= signArray.length) {
-                    i = 0;
-                } else if (i < 0) {
-                    i = signArray.length - 1;
+            for (var ticks=0; ticks<10; ticks++) {
+                if (amount > 600) {
+                    clearTimeout(timer);
+                    return;
                 }
-                if (Math.random() >= 0.75) {
+                var gate = signArray[i];
+                if (currentNetwork == null) {
+                    currentNetwork = new Network(gate);
+                }
+                var finished = training(gate, false);
+                display(gate);
+                if (finished) {
+                    i += 1 * direction;
+                    if (i >= signArray.length) {
+                        i = 0;
+                    } else if (i < 0) {
+                        i = signArray.length - 1;
+                    }
+                    if (Math.random() >= 0.75) {
+                        direction *= -1;
+                    }
+                    //i = Math.floor(Math.random() * signArray.length);
+                    amount++;
+                } else {
+                    //amount += 0.01;
+                }
+                if (i >= signArray.length || i < 0) {
                     direction *= -1;
+                    amount++;
                 }
-                //i = Math.floor(Math.random() * signArray.length);
-                amount++;
-            } else {
-                //amount += 0.01;
-            }
-            if (i >= signArray.length || i < 0) {
-                direction *= -1;
-                amount++;
             }
         }, 1);
     });

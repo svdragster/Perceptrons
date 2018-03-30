@@ -9,6 +9,11 @@ class Neuron {
     }
 
     activationFunction(t) {
+        if (t > 1.0) {
+            t = 1.0;
+        } else if (t < -1.0) {
+            t = -1.0;
+        }
         return t;
         //return 1/(1+Math.pow(Math.E, -t));
 		//return t >= 0 ? 1 : -1; // signum function
@@ -34,6 +39,11 @@ class Neuron {
         var neuron = this;
         this.inputs.forEach(function(connectionIn) {
             connectionIn.weight = connectionIn.weight + connectionIn.value * delta * neuron.learningRate;
+            if (connectionIn.weight > 1.0) {
+                connectionIn.weight = 1.0;
+            } else if (connectionIn.weight < -1.0) {
+                connectionIn.weight = -1.0;
+            }
         });
 		network.bias += this.learningRate * delta;
 	}
@@ -64,15 +74,10 @@ class Network {
 
         this.inputLayer = new Layer();
         this.hiddenLayer = new Layer();
-        var hiddenLayer2 = new Layer();
-        var hiddenLayer3 = new Layer();
-        var hiddenLayer4 = new Layer();
         this.outputLayer = new Layer();
 
         this.hiddenLayers = [
-            this.hiddenLayer,
-            hiddenLayer2,
-            hiddenLayer3
+            this.hiddenLayer
         ];
 
         for (var i=0; i<9; i++) {
@@ -83,23 +88,17 @@ class Network {
         var hCount = 0;
         // hidden layer 1
         for (var i=0; i<15; i++) {
-            var hidden = new Neuron("hidden" + (hCount++));
+            var hidden = new Neuron("hidden (-1) " + (hCount++));
             this.hiddenLayer.push(hidden);
         }
-        // hidden layer 2
-        for (var i=0; i<15; i++) {
-            var hidden = new Neuron("hidden" + (hCount++));
-            hiddenLayer2.push(hidden);
-        }
-        // hidden layer 3
-        for (var i=0; i<12; i++) {
-            var hidden = new Neuron("hidden" + (hCount++));
-            hiddenLayer3.push(hidden);
-        }
-        // hidden layer 4
-        for (var i=0; i<12; i++) {
-            var hidden = new Neuron("hidden" + (hCount++));
-            hiddenLayer4.push(hidden);
+
+        for (var l=0; l<10; l++) {
+            var hiddenL = new Layer();
+            this.hiddenLayers.push(hiddenL);
+            for (var i=0; i<12; i++) {
+                var hidden = new Neuron("hidden (" + l + ") -> " + (hCount++));
+                hiddenL.push(hidden);
+            }
         }
 
         var network = this;
@@ -108,18 +107,19 @@ class Network {
             network.outputLayer.push(output);
         });
 
-        this.connect(this.inputLayer, this.hiddenLayer);
-        //this.connect(this.hiddenLayer, this.outputLayer);
-        this.connect(this.hiddenLayer, hiddenLayer2);
-        this.connect(hiddenLayer2, hiddenLayer3);
-        this.connect(hiddenLayer3, this.outputLayer);
+        this.connect(this.inputLayer, this.hiddenLayers[0]);
+        for (var i=1; i<this.hiddenLayers.length; i++) {
+            this.connect(this.hiddenLayers[i-1], this.hiddenLayers[i]);
+            console.log("____ connecting layer " + (i-1) + " with " + (i));
+        }
+        this.connect(this.hiddenLayers[this.hiddenLayers.length - 1], this.outputLayer);
     }
 
     connect(fromLayer, toLayer) {
         fromLayer.neurons.forEach(function(from, index) {
             toLayer.neurons.forEach(function(to, index) {
                 var con = new Connection((Math.random()*2) - 1); // Random weight between 1 and -1
-                console.log("connected " + from.name + " with " + to.name);
+                console.log("... connected " + from.name + " with " + to.name);
                 from.destinations.push(con);
                 to.inputs.push(con);
             });
