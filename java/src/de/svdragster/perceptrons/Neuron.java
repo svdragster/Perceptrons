@@ -14,9 +14,12 @@ public class Neuron {
 	List<Connection> 	destinations 	= new ArrayList<>();
 
 	float value;
-	float learningRate = 0.005f;
+	float learningRate = 0.05f;
 
 	public Neuron(String name) {
+		if (name == null) {
+			name = "Neuron" + (int) (Math.random()*10_000);
+		}
 		this.name = name;
 	}
 
@@ -27,7 +30,13 @@ public class Neuron {
 	private float activationFunction(float t) {
 		//return (float) (1 / (1 + Math.pow(Math.E, -t)));
 		//return t > 0.5f ? 1 : 0;
-		return Math.signum(t);
+		//return Math.signum(t);
+        if (t > 1.0f) {
+            t = 1.0f;
+        } else if (t < -1.0f) {
+            t = -1.0f;
+        }
+        return t;
 	}
 
 	public float calculateValue(Network network) {
